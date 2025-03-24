@@ -22,10 +22,10 @@ type WalletTransactionListProps = {
 };
 
 //formate date for ui
-const formatDate = (timestamp: number) => {
-  const date = new Date(timestamp);
-  return date.toLocaleString();
-};
+// const formatDate = (timestamp: number) => {
+//   const date = new Date(timestamp);
+//   return date.toLocaleString();
+// };
 
 export function WalletTransactionList({
   walletAddress,

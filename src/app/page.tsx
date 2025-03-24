@@ -6,7 +6,7 @@ import { useAccount } from "wagmi";
 import { ModalButton } from "./components/ModalButton";
 import { WalletStats } from "./components/WalletStats";
 import { WalletTransactionList } from "./components/WalletTransactionList";
-import { useEffect } from "react";
+// import { useEffect } from "react";
 
 export default function Home() {
   const { isConnected, address, chain, chainId, connector } = useAccount();

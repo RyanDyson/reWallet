@@ -2,7 +2,7 @@
 
 // config/index.tsx
 
-import { cookieStorage, createStorage, http } from "@wagmi/core";
+import { cookieStorage, createStorage } from "@wagmi/core";
 import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
 import { mainnet, arbitrum } from "@reown/appkit/networks";
 

@@ -41,7 +41,9 @@ export function WalletStats({ outgoing, incoming, pending }: Props) {
             <ArrowUpRight className="h-4 w-4 text-indigo-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-indigo-600">ETH</div>
+            <div className="text-2xl font-bold text-indigo-600">
+              {outgoing} ETH
+            </div>
             <p className="text-xs text-muted-foreground"> transactions</p>
           </CardContent>
         </Card>
@@ -54,7 +56,7 @@ export function WalletStats({ outgoing, incoming, pending }: Props) {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">90</div>
+            <div className="text-2xl font-bold">{pending}</div>
             <p className="text-xs text-muted-foreground"></p>
           </CardContent>
         </Card>

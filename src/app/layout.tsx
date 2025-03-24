@@ -1,10 +1,14 @@
-// app/layout.tsx
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Merriweather } from "next/font/google";
 import "./globals.css";
 
-import { headers } from "next/headers"; // added
+import { headers } from "next/headers";
 import ContextProvider from "@/context";
+
+const merriweather = Merriweather({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+});
 
 export const metadata: Metadata = {
   title: "Wallet Chaos Theory",
@@ -19,8 +23,8 @@ export default async function RootLayout({
   const cookies = (await headers()).get("cookie");
 
   return (
-    <html lang="en">
-      <body className="dark bg-gradient-to-br from-neutral-800 to-neutral-950">
+    <html style={merriweather.style} lang="en">
+      <body className="dark bg-gradient-to-br from-neutral-800 to-neutral-950 font-sans">
         <ContextProvider cookies={cookies}>{children}</ContextProvider>
       </body>
     </html>
