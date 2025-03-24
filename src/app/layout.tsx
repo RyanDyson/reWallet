@@ -1,23 +1,27 @@
+// app/layout.tsx
 import type { Metadata } from "next";
-import { Providers } from "./components/providers";
-
+import { Inter } from "next/font/google";
 import "./globals.css";
 
+import { headers } from "next/headers"; // added
+import ContextProvider from "@/context";
+
 export const metadata: Metadata = {
-  title: "JStack App",
-  description: "Created using JStack",
-  icons: [{ rel: "icon", url: "/favicon.ico" }],
+  title: "Wallet Chaos Theory",
+  description: "Powered by WalletConnect",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookies = (await headers()).get("cookie");
+
   return (
     <html lang="en">
-      <body className="antialiased dark:bg-gray-900 dark:text-gray-200">
-        <Providers>{children}</Providers>
+      <body className="dark bg-gradient-to-br from-neutral-800 to-neutral-950">
+        <ContextProvider cookies={cookies}>{children}</ContextProvider>
       </body>
     </html>
   );

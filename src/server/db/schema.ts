@@ -1,14 +1,18 @@
-import { pgTable, serial, text, timestamp, index } from "drizzle-orm/pg-core"
+import { pgTable, integer, text, timestamp } from "drizzle-orm/pg-core";
 
-export const posts = pgTable(
-  "posts",
-  {
-    id: serial("id").primaryKey(),
-    name: text("name").notNull(),
-    createdAt: timestamp("createdAt").defaultNow().notNull(),
-    updatedAt: timestamp("updatedAt").defaultNow().notNull(),
-  },
-  (table) => [
-    index("Post_name_idx").on(table.name)
-  ]
-)
+export const wallet = pgTable("wallet", {
+  id: integer().primaryKey().generatedByDefaultAsIdentity(),
+  address: text().unique().notNull(),
+  createdAt: timestamp(),
+  updatedAt: timestamp(),
+});
+
+export const Transaction = pgTable("transaction", {});
+
+export const AddressTag = pgTable("address_tag", {
+  id: integer().primaryKey().generatedByDefaultAsIdentity(),
+  address: text().unique().notNull(),
+  tag: text().notNull(),
+  createdAt: timestamp(),
+  updatedAt: timestamp(),
+});
