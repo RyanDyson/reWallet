@@ -1,3 +1,3 @@
-## JStack
+# Crypto wallet dashboard
 
-Ship high-performance Next.js apps for extremely cheap
+Connect a crypto wallet and view your transaction history

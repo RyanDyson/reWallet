@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowDownUp, ArrowUpRight, Clock } from "lucide-react";
+import { ArrowDown, ArrowUp, Clock } from "lucide-react";
 import { useAccount } from "wagmi";
 
 type Props = {
@@ -15,21 +15,19 @@ export function WalletStats({ outgoing, incoming, pending }: Props) {
 
   return (
     isConnected && (
-      <div className="w-full flex flex-col md:flex-row gap-x-2">
+      <div className="w-full flex flex-col md:flex-row gap-x-1 px-8 pb-4">
         <Card className="w-full min-w-64">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Total Incoming
             </CardTitle>
-            <ArrowDownUp className="h-4 w-4 text-emerald-500 rotate-180" />
+            <ArrowDown className="h-4 w-4 text-emerald-500 rotate-180" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-emerald-600">
-              {incoming}ETH
+              {incoming} ETH
             </div>
-            <p className="text-xs text-muted-foreground">
-              {incoming}transactions
-            </p>
+            <p className="text-xs text-muted-foreground">transactions</p>
           </CardContent>
         </Card>
 
@@ -38,13 +36,13 @@ export function WalletStats({ outgoing, incoming, pending }: Props) {
             <CardTitle className="text-sm font-medium">
               Total Outgoing
             </CardTitle>
-            <ArrowUpRight className="h-4 w-4 text-indigo-500" />
+            <ArrowUp className="h-4 w-4 text-indigo-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-indigo-600">
               {outgoing} ETH
             </div>
-            <p className="text-xs text-muted-foreground"> transactions</p>
+            <p className="text-xs text-muted-foreground">transactions</p>
           </CardContent>
         </Card>
 
@@ -57,7 +55,7 @@ export function WalletStats({ outgoing, incoming, pending }: Props) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{pending}</div>
-            <p className="text-xs text-muted-foreground"></p>
+            <p className="text-xs text-muted-foreground">transactions</p>
           </CardContent>
         </Card>
       </div>

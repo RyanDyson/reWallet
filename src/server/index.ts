@@ -1,4 +1,5 @@
 import { j } from "./jstack";
+import { WalletRouter } from "./routers/wallet";
 
 /**
  * This is your base API.
@@ -16,7 +17,9 @@ const api = j
  * This is the main router for your server.
  * All routers in /server/routers should be added here manually.
  */
-const appRouter = j.mergeRouters(api, {});
+const appRouter = j.mergeRouters(api, {
+  wallet: WalletRouter,
+});
 
 export type AppRouter = typeof appRouter;
 
