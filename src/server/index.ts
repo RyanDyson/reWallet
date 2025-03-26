@@ -1,7 +1,5 @@
 import { j } from "./jstack";
 import { WalletRouter } from "./routers/wallet";
-import { TransactionRouter } from "./routers/transaction";
-import { AddressTagRouter } from "./routers/addressTags";
 
 /**
  * This is your base API.
@@ -21,8 +19,6 @@ const api = j
  */
 const appRouter = j.mergeRouters(api, {
   wallet: WalletRouter,
-  transaction: TransactionRouter,
-  addressTag: AddressTagRouter,
 });
 
 export type AppRouter = typeof appRouter;

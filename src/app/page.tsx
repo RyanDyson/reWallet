@@ -8,29 +8,29 @@ import { WalletStats } from "./components/WalletStats";
 import { WalletTransactionList } from "./components/WalletTransactionList";
 import { useState } from "react";
 import { client } from "@/lib/client";
-import { useEffect } from "react";
-import { type selectWallet } from "@/server/db/schema";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Home() {
   const { isConnected, address } = useAccount();
   const [pending, setPending] = useState(0);
   const [incoming, setIncoming] = useState(0);
   const [outgoing, setOutgoing] = useState(0);
-  const [wallet, setWallet] = useState<selectWallet | undefined>(undefined);
-  console.log({ wallet });
-
-  useEffect(() => {
-    const fetchData = async () => {
-      console.log({ address });
+  const { data: wallet } = useQuery({
+    queryKey: ["wallet"],
+    queryFn: async () => {
       if (isConnected && address) {
-        const fetchedWallet = (await client.wallet.newWallet.$post({
-          address,
-        })) as unknown as selectWallet;
-        setWallet(fetchedWallet);
+        const temp = await client.wallet.getWallet.$get({ address });
+        const res1 = await temp.json();
+        if (res1.length === 0) {
+          const res = await client.wallet.newWallet.$post({ address });
+          return await res.json();
+        }
+        return res1;
       }
-    };
-    fetchData();
-  }, [isConnected, address]);
+    },
+  });
+
+  console.log({ wallet });
 
   return (
     <main className="px-4 py-8 h-screen">

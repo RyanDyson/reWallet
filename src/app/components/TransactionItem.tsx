@@ -1,13 +1,29 @@
+"use client";
+
 import { Transaction } from "@/lib/types/mockTransactions";
-import { ArrowDown, ArrowUp, Clock, Edit } from "lucide-react";
+import { ArrowDown, ArrowUp, Clock } from "lucide-react";
+import { Edit } from "lucide-react";
 import {
   Dialog,
-  DialogHeader,
   DialogContent,
+  DialogHeader,
   DialogTrigger,
-  DialogDescription,
 } from "@/components/ui/dialog";
 import { client } from "@/lib/client";
+import { useMutation } from "@tanstack/react-query";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
+import {
+  Form,
+  FormField,
+  FormLabel,
+  FormControl,
+  FormItem,
+} from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
 // import { mockTags } from "@/lib/types/mockTags";
 
 const formatDate = (timestamp: number) => {
@@ -15,62 +31,137 @@ const formatDate = (timestamp: number) => {
   return date.toLocaleString();
 };
 
-const TagsDialog = async ({
-  transaction_hash,
-}: {
-  transaction_hash: string;
-}) => {
-  const res = await client.addressTag.getAllAddressTagByTransactionHash.$get({
-    transactionHash: transaction_hash,
-  });
-  const tags = await res.json();
+const fromFormchema = z.object({
+  tag: z.string(),
+});
 
-  return (
-    <Dialog>
-      <DialogTrigger>
-        <Edit className="justify-self-end h-4 w-4 text-neutral-400 cursor-pointer hover:text-neutral-200 transition-colors" />
-      </DialogTrigger>
-      <DialogContent className="flex flex-col gap-y-2 p-2">
-        <DialogHeader>
-          <h3 className="text-lg font-semibold">Edit Tags</h3>
-        </DialogHeader>
-        <DialogDescription>Add new tags to your transaction</DialogDescription>
-        {tags.map((tag, index) => {
-          return (
-            <div key={index} className="flex gap-x-2 items-center">
-              <div className="w-min rounded-full px-3 py-0.5 border border-neutral-800 bg-neutral-950/60">
-                {tag.tag}
-              </div>
-            </div>
-          );
-        })}
-      </DialogContent>
-    </Dialog>
-  );
-};
-
-export const TransactionItem = async ({
+export const TransactionItem = ({
   transaction,
-  walletAddress,
+  tags,
+  address,
 }: {
   transaction: Transaction;
-  walletAddress: string;
+  tags: Record<string, string>;
+  address: string;
 }) => {
-  let res;
-  try {
-    res = await client.transaction.newTransaction.$post({
-      ...transaction,
-      wallet_address: walletAddress,
-      type: transaction.type ?? "pending",
-      blockNumber: Number(transaction.blockNumber),
-      timestamp: new Date(transaction.timestamp),
-    });
-  } catch (Error) {
-    console.log(Error);
+  const [tagFrom, setTagFrom] = useState<string | undefined>(
+    tags[transaction.from]
+  );
+  const [tagTo, setTagTo] = useState<string | undefined>(
+    tags[transaction.to || ""]
+  );
+
+  useEffect(() => {
+    setTagFrom(tags[transaction.from]);
+    setTagTo(tags[transaction.to || ""]);
+  }, [tags, transaction.from, transaction.to]);
+
+  const { mutate: addTag } = useMutation({
+    mutationFn: async (newTag: { address: string; tag: string }) => {
+      // Initialize the address variable
+      await client.wallet.createTag.$post({
+        tag: newTag.tag,
+        address: newTag.address,
+        ownerAddress: address,
+      });
+    },
+    onSuccess: () => {
+      toast("Tag added successfully");
+    },
+    onError: (error) => {
+      console.error("Failed to add tag:", error);
+    },
+  });
+
+  const fromForm = useForm<z.infer<typeof fromFormchema>>({
+    resolver: zodResolver(fromFormchema),
+    defaultValues: {
+      tag: tags[transaction.from] || "",
+    },
+  });
+
+  function fromOnSubmit(
+    type: "from" | "to",
+    address: string,
+    values: z.infer<typeof fromFormchema>
+  ) {
+    if (type === "from") {
+      setTagFrom(values.tag);
+    } else {
+      setTagTo(values.tag);
+    }
+    addTag({ address: address, tag: values.tag });
   }
 
-  const newTransaction = await res?.json();
-  console.log(newTransaction);
+  const ToDialog = () => {
+    return (
+      <Dialog>
+        <DialogTrigger>
+          <Edit className="justify-self-end h-4 w-4 text-neutral-400 cursor-pointer hover:text-neutral-200 transition-colors" />
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>Edit From</DialogHeader>
+          <Form {...fromForm}>
+            <form
+              className="flex gap-y-2 flex-col"
+              onSubmit={fromForm.handleSubmit((values) =>
+                fromOnSubmit("to", transaction.to || "", values)
+              )}
+            >
+              <FormField
+                control={fromForm.control}
+                name="tag"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel htmlFor="tag">Tag</FormLabel>
+                    <FormControl>
+                      <input {...field} id="tag" />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <Button type="submit">Save</Button>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
+  const FromDialog = () => {
+    return (
+      <Dialog>
+        <DialogTrigger>
+          <Edit className="justify-self-end h-4 w-4 text-neutral-400 cursor-pointer hover:text-neutral-200 transition-colors" />
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>Edit Address Tag</DialogHeader>
+          <Form {...fromForm}>
+            <form
+              className="flex gap-y-2 flex-col"
+              onSubmit={fromForm.handleSubmit((values) =>
+                fromOnSubmit("from", transaction.from, values)
+              )}
+            >
+              <FormField
+                control={fromForm.control}
+                name="tag"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel htmlFor="tag">Tag</FormLabel>
+                    <FormControl>
+                      <input {...field} id="tag" />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <Button type="submit">Save</Button>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+    );
+  };
 
   return (
     <div className="p-2 flex flex-col gap-y-2">
@@ -95,19 +186,24 @@ export const TransactionItem = async ({
         )}
         <p className="flex items-center gap-x-2 text-neutral-400 text-sm">
           {formatDate(transaction.timestamp)}
-          <TagsDialog transaction_hash={transaction.hash} />
         </p>
       </div>
       <div className="flex gap-x-2">
-        <div className="rounded-sm border-neutral-800 border p-2 max-w-1/3 w-full overflow-x-scroll">
-          <p className="text-neutral-400">From</p>
-          <p className="truncate">{transaction.from}</p>
+        <div className="rounded-sm overflow-x-hidden border-neutral-800 border p-2 max-w-1/3 w-full ">
+          <div className="text-neutral-400 flex justify-between items-center">
+            <p className="text-neutral-400">From</p>
+            <FromDialog />
+          </div>
+          <p className="truncate">{tagFrom || transaction.from}</p>
         </div>
-        <div className="rounded-sm border-neutral-800 border p-2 max-w-1/3 w-full overflow-x-scroll">
-          <p className="text-neutral-400">To</p>
-          <p className="truncate">{transaction.to || "Contract Creation"}</p>
+        <div className="rounded-sm overflow-hidden border-neutral-800 border p-2 max-w-1/3 w-full ">
+          <div className="text-neutral-400 flex justify-between items-center">
+            <p className="text-neutral-400">To</p>
+            <ToDialog />
+          </div>
+          <p className="truncate">{tagTo || transaction.to}</p>
         </div>
-        <div className="rounded-sm border-neutral-800 border p-2 max-w-1/3 w-full overflow-x-scroll">
+        <div className="rounded-sm overflow-hidden border-neutral-800 border p-2 max-w-1/3 w-full ">
           <p className="text-neutral-400">Value</p>
           <p className="text-emerald-400">{transaction.value} ETH</p>
         </div>

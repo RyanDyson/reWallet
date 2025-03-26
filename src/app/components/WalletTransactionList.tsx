@@ -9,11 +9,14 @@ import { formatEther } from "viem";
 import { toast } from "sonner";
 import { type Dispatch, type SetStateAction } from "react";
 import {
-  mockTransactions,
+  // mockTransactions,
   type Transaction,
 } from "@/lib/types/mockTransactions";
 import { useAccount } from "wagmi";
 import { TransactionItem } from "./TransactionItem";
+import { client as dbclient } from "@/lib/client";
+import { useQuery } from "@tanstack/react-query";
+// import { useEffect } from "react";
 
 type WalletTransactionListProps = {
   walletAddress: string;
@@ -30,9 +33,29 @@ export function WalletTransactionList({
 }: WalletTransactionListProps) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const client = usePublicClient();
-  const { isConnected } = useAccount();
+
+  const { isConnected, address } = useAccount();
   let pending = 0;
-  console.log(mockTransactions);
+
+  const { data: tags } = useQuery({
+    queryKey: ["tags"],
+    queryFn: async () => {
+      if (isConnected && address) {
+        const res = await dbclient.wallet.getAllTagsByWalletAddress.$get({
+          address,
+        });
+        const tagsData = await res.json();
+
+        // Create a hash map where the key is the address and the value is the tag
+        const temp: Record<string, string> = {};
+        tagsData.map((tag) => {
+          temp[tag.address] = tag.tag;
+        });
+
+        return temp;
+      }
+    },
+  });
 
   useWatchBlocks({
     enabled: isConnected,
@@ -160,24 +183,25 @@ export function WalletTransactionList({
   //   useDisconnect();
   // }
 
-  console.log(transactions);
+  console.log({ transactions });
 
   return (
     <div className="px-8 ">
       <h2 className="mb-2">Transactions List</h2>
 
-      {mockTransactions.length === 0 ? (
+      {transactions.length === 0 ? (
         <p className="text-neutral-400">
           No transactions detected yet. Waiting for new transactions...
         </p>
       ) : (
-        <div className="w-full max-h-96 overflow-y-scroll flex flex-col gap-y-2 divide-y divide-neutral-800">
-          {mockTransactions.map((transaction, index) => {
+        <div className="w-full max-h-80 overflow-y-scroll flex flex-col gap-y-2 divide-y divide-neutral-800">
+          {transactions.map((transaction, index) => {
             return (
               <TransactionItem
-                walletAddress={walletAddress}
+                tags={tags || {}}
                 key={index}
                 transaction={transaction}
+                address={address || ""}
               />
             );
           })}
