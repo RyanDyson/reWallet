@@ -7,14 +7,30 @@ import { ModalButton } from "./components/ModalButton";
 import { WalletStats } from "./components/WalletStats";
 import { WalletTransactionList } from "./components/WalletTransactionList";
 import { useState } from "react";
-// import { useEffect } from "react";
+import { client } from "@/lib/client";
+import { useEffect } from "react";
+import { type selectWallet } from "@/server/db/schema";
 
 export default function Home() {
-  const { isConnected, address, chain, chainId, connector } = useAccount();
+  const { isConnected, address } = useAccount();
   const [pending, setPending] = useState(0);
   const [incoming, setIncoming] = useState(0);
   const [outgoing, setOutgoing] = useState(0);
-  console.log({ isConnected, address, chain, chainId, connector });
+  const [wallet, setWallet] = useState<selectWallet | undefined>(undefined);
+  console.log({ wallet });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      console.log({ address });
+      if (isConnected && address) {
+        const fetchedWallet = (await client.wallet.newWallet.$post({
+          address,
+        })) as unknown as selectWallet;
+        setWallet(fetchedWallet);
+      }
+    };
+    fetchData();
+  }, [isConnected, address]);
 
   return (
     <main className="px-4 py-8 h-screen">
@@ -49,7 +65,7 @@ export default function Home() {
       ) : (
         <div className="flex flex-col w-full justify-center items-center h-full px-8 md:px-32 py-16">
           <div className="relative flex flex-col gap-y-4 max-w-4xl w-full bg-neutral-900 border rounded-sm py-8 border-neutral-800 z-20 divide-y divide-neutral-800">
-            <div className="flex gap-x-2 absolute right-0 z-0 -top-14 bg-emerald-950/80 border border-emerald-800 p-2 px-4 justify-center items-center rounded-full">
+            <div className="flex gap-x-2 absolute right-0 z-0 -top-12 bg-emerald-950/80 border border-emerald-800 p-2 px-4 justify-center items-center rounded-full">
               <div className="rounded-full bg-emerald-600 w-4 h-4" />
               <p>Connected</p>
             </div>
@@ -66,11 +82,17 @@ export default function Home() {
               pending={pending}
             />
             <WalletTransactionList
-              walletAddress={address ?? ""}
+              walletAddress={address || ""}
               setIncome={setIncoming}
               setPending={setPending}
               setOutcome={setOutgoing}
             />
+            {/* <Dialog>
+              <DialogTrigger>
+                <p>click me</p>
+              </DialogTrigger>
+              <DialogContent>testing</DialogContent>
+            </Dialog> */}
           </div>
         </div>
       )}

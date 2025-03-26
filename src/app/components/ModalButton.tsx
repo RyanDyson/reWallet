@@ -6,7 +6,6 @@ import { useAppKit } from "@reown/appkit/react";
 import { Button } from "@/components/ui/button";
 import { LogOut, LogIn, LoaderCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { client } from "@/lib/client";
 
 type Props = {
   className?: string;
@@ -15,19 +14,7 @@ type Props = {
 export function ModalButton({ className }: Props) {
   const { open } = useAppKit();
   const { disconnect } = useDisconnect();
-  const { isConnected, isConnecting, address } = useAccount();
-
-  const handleConnect = async () => {
-    open();
-    if (isConnected) {
-      const temp = address ?? "";
-      try {
-        await client.wallet.newWallet.$post({ address: temp });
-      } catch (error) {
-        console.error(error);
-      }
-    }
-  };
+  const { isConnected, isConnecting } = useAccount();
 
   if (isConnected) {
     return (
@@ -43,7 +30,7 @@ export function ModalButton({ className }: Props) {
 
   return (
     <Button
-      onClick={() => handleConnect()}
+      onClick={() => open()}
       className={cn(className, "w-full cursor-pointer")}
     >
       {isConnecting ? (

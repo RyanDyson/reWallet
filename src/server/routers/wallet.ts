@@ -10,16 +10,18 @@ export const WalletRouter = j.router({
         address: z.string(),
       })
     )
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input, ctx, c }) => {
       const { db } = ctx;
       const { address } = input;
 
       const temp = db.select().from(wallet).where(eq(wallet.address, address));
+      console.log({ temp });
       if (temp != null) {
         //wallet already exists
         return;
       }
 
-      await db.insert(wallet).values({ address });
+      const newWallet = await db.insert(wallet).values({ address });
+      return c.superjson(newWallet);
     }),
 });

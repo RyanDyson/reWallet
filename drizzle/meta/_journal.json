@@ -36,6 +36,27 @@
       "when": 1742881735188,
       "tag": "0004_overrated_synch",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1742977494260,
+      "tag": "0005_moaning_bishop",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1742977683546,
+      "tag": "0006_cold_bug",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1742977794890,
+      "tag": "0007_high_surge",
+      "breakpoints": true
     }
   ]
 }
