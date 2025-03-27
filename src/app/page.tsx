@@ -21,6 +21,7 @@ export default function Home() {
       if (isConnected && address) {
         const temp = await client.wallet.getWallet.$get({ address });
         const res1 = await temp.json();
+        console.log({ res1 });
         if (res1.length === 0) {
           const res = await client.wallet.newWallet.$post({ address });
           return await res.json();
