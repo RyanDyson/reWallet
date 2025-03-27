@@ -1,6 +1,6 @@
 import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
-import { env } from "hono/adapter";
+// import { env } from "hono/adapter";
 import { jstack } from "jstack";
 
 interface Env {
@@ -14,7 +14,7 @@ export const j = jstack.init<Env>();
  *
  * @see https://jstack.app/docs/backend/middleware
  */
-const databaseMiddleware = j.middleware(async ({ c, next }) => {
+const databaseMiddleware = j.middleware(async ({ next }) => {
   // const { DATABASE_URL } = env(c)
 
   const sql = neon(process.env.DATABASE_URL as string);
