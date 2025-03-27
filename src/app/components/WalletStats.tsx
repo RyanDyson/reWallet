@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowDown, ArrowUp, Clock } from "lucide-react";
 import { useAccount } from "wagmi";
+import { useEffect } from "react";
 
 type Props = {
   outgoing?: number;
@@ -12,6 +13,8 @@ type Props = {
 
 export function WalletStats({ outgoing, incoming, pending }: Props) {
   const { isConnected } = useAccount();
+
+  useEffect(() => {}, [outgoing, incoming, pending]);
 
   return (
     isConnected && (

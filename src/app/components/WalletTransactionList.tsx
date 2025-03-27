@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   usePublicClient,
   useWatchBlocks,
@@ -25,22 +25,48 @@ type WalletTransactionListProps = {
   setPending?: Dispatch<SetStateAction<number>>;
 };
 
+interface EtherscanTransaction {
+  blockNumber: string;
+  timeStamp: string;
+  hash: string;
+  from: string;
+  to: string;
+  value: string;
+  gas: string;
+  gasPrice: string;
+  isError: string;
+  txreceipt_status: string;
+  input: string;
+  contractAddress: string;
+  confirmations: string;
+}
+
+interface EtherscanResponse {
+  status: string;
+  message: string;
+  result: EtherscanTransaction[];
+}
+
 export function WalletTransactionList({
   walletAddress,
   setIncome,
   setOutcome,
   setPending,
 }: WalletTransactionListProps) {
+  //formatted transactions for ui display
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  //wagmi client
   const client = usePublicClient();
 
   const { isConnected, address } = useAccount();
   let pending = 0;
 
+  //api call is server only, so wrap in useQuery from react-query
   const { data: tags } = useQuery({
     queryKey: ["tags"],
     queryFn: async () => {
       if (isConnected && address) {
+        //api call to db to get all tags
         const res = await dbclient.wallet.getAllTagsByWalletAddress.$get({
           address,
         });
@@ -57,8 +83,11 @@ export function WalletTransactionList({
     },
   });
 
+  //usewatchblocks and usependingtransactions opens websocket connection to blockchain via wagmi
+  //both hooks only fetch recent transactions (i.e. transactions that happen while the websocket connection is open)
+  //watch for new blocks on the blockhain
   useWatchBlocks({
-    enabled: isConnected,
+    enabled: isConnected, //only watch if walletConnect is connected
     onBlock: async (block) => {
       try {
         // get full block with transactions
@@ -78,7 +107,6 @@ export function WalletTransactionList({
         // checks for transactions
         if (transactions && transactions.length > 0) {
           //format transactions
-
           const formattedTransactions = transactions
             .map((tx) => {
               if (typeof tx === "object") {
@@ -99,6 +127,7 @@ export function WalletTransactionList({
             })
             .filter((tx) => tx !== null) as Transaction[];
 
+          // calculate and update income, outgoing for the stats
           let income: number = 0;
           let outgoing: number = 0;
           formattedTransactions.map((tx) => {
@@ -109,7 +138,7 @@ export function WalletTransactionList({
             }
           });
 
-          // set transactions
+          // set transactions, income, outgoing
           setTransactions((prev) => [...formattedTransactions, ...prev]);
           if (setIncome) {
             setIncome(income);
@@ -119,11 +148,13 @@ export function WalletTransactionList({
           }
         }
       } catch (error) {
+        //create sonner when error
         toast(<div>{error as string}</div>);
       }
     },
   });
 
+  //watch for pending transactions on the blockchain
   useWatchPendingTransactions({
     enabled: isConnected,
     onTransactions: async (hashes) => {
@@ -166,22 +197,94 @@ export function WalletTransactionList({
     },
   });
 
-  // useEffect(() => {if (!isConnected) {
-  //   watchBlocks();
-  //   watchPending();
+  //fetches historical transactions
+  useEffect(() => {
+    if (isConnected && walletAddress) {
+      const fetchHistoricalTransactions = async () => {
+        try {
+          //validates wallet address to match etherscan api
+          if (!walletAddress.match(/^0x[a-fA-F0-9]{40}$/)) {
+            throw new Error("Invalid wallet address format");
+          }
+          // Etherscan API URL
+          const apikey = process.env.NEXT_PUBLIC_ETHER_SCAN_API_KEY;
+          const apiUrl = `https://api.etherscan.io/api?module=account&action=txlist&address=${walletAddress}&startblock=0&endblock=99999999&page=1&offset=100&sort=desc&apikey=${apikey}`;
 
-  // }}, [
-  //   isConnected,
-  //   walletAddress,
-  //   client,
-  //   setIncome,
-  //   setOutcome,
-  //   setPending,
-  // ]);
+          const controller = new AbortController();
 
-  // if (!isConnected) {
-  //   useDisconnect();
-  // }
+          // Fetch data from Etherscan
+          const response = await fetch(apiUrl, {
+            signal: controller.signal,
+            headers: {
+              Accept: "application/json",
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+
+          const data: EtherscanResponse = await response.json();
+
+          if (data.status === "1") {
+            // Process and format the transactions
+            const historicalTxs = data.result.map((tx) => ({
+              hash: tx.hash,
+              from: tx.from,
+              to: tx.to === "" ? null : tx.to,
+              value: formatEther(BigInt(tx.value)),
+              blockNumber: BigInt(tx.blockNumber),
+              timestamp: parseInt(tx.timeStamp) * 1000, // Convert to milliseconds
+            }));
+
+            // Add historical transactions to state
+            setTransactions((prevTxs) => {
+              // Combine without duplicates
+              const existingHashes = new Set(prevTxs.map((tx) => tx.hash));
+              const history = historicalTxs
+                .map((tx) => {
+                  if (tx.to === walletAddress) {
+                    //if to wallet, then incoming
+                    if (setIncome) {
+                      setIncome(
+                        (prevIncome) => prevIncome + parseFloat(tx.value)
+                      );
+                    }
+                    return { ...tx, type: "incoming" as const };
+                  }
+
+                  //if from wallet, then outgoing
+                  if (setOutcome) {
+                    setOutcome(
+                      (prevOutcome) => prevOutcome + parseFloat(tx.value)
+                    );
+                  }
+                  return { ...tx, type: "outgoing" as const };
+                })
+                .filter((tx) => !existingHashes.has(tx.hash)); // Filter out undefined values
+
+              const newTxs = [...prevTxs, ...history];
+              return newTxs;
+            });
+          } else {
+            throw new Error(`Etherscan API error: ${data.message}`);
+          }
+        } catch (error) {
+          console.log(error);
+          toast("Failed to fetch historical transactions");
+        }
+      };
+
+      fetchHistoricalTransactions();
+    }
+  }, [walletAddress, isConnected, setIncome, setOutcome]);
+
+  // Manually disconnect WebSockets when isConnected changes to false
+
+  // Format and sort transactions for display based on transaction date
+  const sortedTransactions = [...transactions].sort(
+    (a, b) => b.timestamp - a.timestamp
+  );
 
   console.log({ transactions });
 
@@ -189,13 +292,13 @@ export function WalletTransactionList({
     <div className="px-8 ">
       <h2 className="mb-2">Transactions List</h2>
 
-      {transactions.length === 0 ? (
+      {sortedTransactions.length === 0 ? (
         <p className="text-neutral-400">
           No transactions detected yet. Waiting for new transactions...
         </p>
       ) : (
         <div className="w-full max-h-80 overflow-y-scroll flex flex-col gap-y-2 divide-y divide-neutral-800">
-          {transactions.map((transaction, index) => {
+          {sortedTransactions.map((transaction, index) => {
             return (
               <TransactionItem
                 tags={tags || {}}

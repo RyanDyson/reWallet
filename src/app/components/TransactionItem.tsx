@@ -44,6 +44,7 @@ export const TransactionItem = ({
   tags: Record<string, string>;
   address: string;
 }) => {
+  //locally stores tag first upon update so user can see
   const [tagFrom, setTagFrom] = useState<string | undefined>(
     tags[transaction.from]
   );
@@ -51,11 +52,13 @@ export const TransactionItem = ({
     tags[transaction.to || ""]
   );
 
+  //update lcoal tags when tag from api call changes
   useEffect(() => {
     setTagFrom(tags[transaction.from]);
     setTagTo(tags[transaction.to || ""]);
   }, [tags, transaction.from, transaction.to]);
 
+  //add tag
   const { mutate: addTag } = useMutation({
     mutationFn: async (newTag: { address: string; tag: string }) => {
       // Initialize the address variable
@@ -73,6 +76,7 @@ export const TransactionItem = ({
     },
   });
 
+  //usereactform with shadcn
   const fromForm = useForm<z.infer<typeof fromFormchema>>({
     resolver: zodResolver(fromFormchema),
     defaultValues: {
@@ -85,11 +89,13 @@ export const TransactionItem = ({
     address: string,
     values: z.infer<typeof fromFormchema>
   ) {
+    //temporarily update local tag
     if (type === "from") {
       setTagFrom(values.tag);
     } else {
       setTagTo(values.tag);
     }
+    //call mutation to update tag
     addTag({ address: address, tag: values.tag });
   }
 
