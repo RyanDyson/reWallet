@@ -24,7 +24,7 @@ if (!projectId) {
 
 // Set up metadata
 const metadata = {
-  name: "wallet chaos theory",
+  name: "re:Wallet",
   description: "AppKit Example",
   url: "https://reown.com/appkit", // origin must match your domain & subdomain
   icons: ["https://assets.reown.com/reown-profile-pic.png"],

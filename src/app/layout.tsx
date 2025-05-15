@@ -11,7 +11,7 @@ const merriweather = Merriweather({
 });
 
 export const metadata: Metadata = {
-  title: "Wallet Chaos Theory",
+  title: "re:Wallet",
   description: "Powered by WalletConnect",
 };
 

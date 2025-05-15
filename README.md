@@ -1,6 +1,6 @@
-# Crypto wallet dashboard
+# reWallet : A Simple Crypto wallet dashboard
 
-Connect a crypto wallet and view your transaction history. Wallet address are able to be aliased by adding tags to them.
+Originally made for a internship interview. Connect a crypto wallet and view your transaction history. Wallet address are able to be aliased by adding tags to them.
 
 ### Tech Stack
 

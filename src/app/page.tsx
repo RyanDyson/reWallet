@@ -40,13 +40,10 @@ export default function Home() {
           <div className="flex flex-col items-start justify-start mb-8 text-left">
             <div className="flex items-center gap-2 mb-2">
               <Wallet className="h-8 w-8 text-primary" />
-              <h1 className="text-3xl font-bold">UWallet</h1>
+              <h1 className="text-3xl font-bold">re:Wallet</h1>
             </div>
             <p className="text-muted-foreground max-w-2xl">
               Dashboard to view and manage your crypto transactions.
-            </p>
-            <p className="text-muted-foreground max-w-2xl">
-              Trial project for chaos theory interview.
             </p>
             <p className="text-muted-foreground max-w-2xl">
               Powered by WalletConnect.
