@@ -29,7 +29,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.39.0",
-    "hono": "^4.7.0",
+    "hono": "^4.11.1",
     "jstack": "^1.0.8",
     "lucide-react": "^0.483.0",
     "next": "^15.4.8",
